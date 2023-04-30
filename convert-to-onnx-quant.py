@@ -1,9 +1,7 @@
 import torch
-from torch import nn
 from torchvision.io import read_image
-from torchvision.models import resnet, ResNet, resnet50, ResNet50_Weights
+from torchvision.models import resnet50, ResNet50_Weights
 from torchinfo import summary
-from resnet_block import ResnetBlockLM
 
 from pytorch_quantization import nn as quant_nn
 from pytorch_quantization import calib
@@ -24,19 +22,15 @@ weights = ResNet50_Weights.DEFAULT
 preprocess = weights.transforms()
 batch = preprocess(img).unsqueeze(0)
 
-block = resnet.Bottleneck
-layers = [3, 4, 6, 3]
-weights = ResNet50_Weights.verify(weights)
-
-
-model = ResnetBlockLM(block, layers, weights)
-
+model = resnet50(weights=weights)
 model=model.eval()
 
-summary(model, batch.shape, depth=7)
+summary(model, batch.shape) # make sure the model consist of QuantConv2d layers
 
 model=model.cuda()
 batch=batch.cuda()
+# Sets the model to inference mode - train(False)
+model=model.eval()
 
 prediction = model(batch).squeeze(0).softmax(0)
 class_id = prediction.argmax().item()
@@ -44,5 +38,22 @@ score = prediction[class_id].item()
 category_name = weights.meta["categories"][class_id]
 print(f"{category_name}: {100 * score:.1f}%")
 
-torch.save(model, "model2.pt")
-torch.save(model.state_dict(), "model2_state_dict.pt")
+print("Converting to ONNX")
+quant_nn.TensorQuantizer.use_fb_fake_quant = True
+
+dummy_input = torch.randn(1, 3, 224, 224, device="cuda")
+input_names = ["input0"]
+output_names = ["output0"]
+dynamic_axes = {"input0": {0: "batch"}, "output0": {0: "batch"}}
+
+y = model(dummy_input)
+torch.onnx.export(
+    model,
+    dummy_input,
+    "quant_resnet50.onnx",
+    verbose=True,
+    input_names=input_names,
+    output_names=output_names,
+    dynamic_axes=dynamic_axes,
+)
+print("The model was converted to ONNX")

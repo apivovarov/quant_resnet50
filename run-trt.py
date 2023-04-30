@@ -14,7 +14,10 @@ import sys
 import numpy as np
 trt_logger = trt.Logger(trt.Logger.INFO)
 runtime = trt.Runtime(trt_logger)
-fpath="quant_resnet50.trt"
+#fpath="quant_resnet50.trt"
+fpath="resnet50_fp16_int8.trt"
+#fpath="resnet50_fp16.trt"
+#fpath="resnet50_fp32.trt"
 
 with open(fpath, "rb") as f:
     engine = runtime.deserialize_cuda_engine(f.read())
@@ -67,7 +70,8 @@ for i in range(100):
 # Measure Latency
 import time
 TT=[]
-for i in range(100):
+N = 3000
+for i in range(N):
   t0=time.time()
   predict(batch)
   t1=time.time()
