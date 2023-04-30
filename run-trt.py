@@ -8,8 +8,12 @@ batch = batch.numpy()
 batch = np.concatenate([batch]*8)
 
 import tensorrt as trt
-import pycuda.driver as cuda
-import pycuda.autoinit
+from net_utils import cuda_error_check
+from cuda import cuda
+
+cuda_error_check(cuda.cuInit(0))
+cuDevice = cuda_error_check(cuda.cuDeviceGet(0))
+cuCtx = cuda_error_check(cuda.cuCtxCreate(0, cuDevice))
 import sys
 import numpy as np
 trt_logger = trt.Logger(trt.Logger.INFO)
@@ -43,20 +47,27 @@ target_dtype = np.float16 if USE_FP16 else np.float32
 output = np.empty([BATCH_SIZE, 1000], dtype = target_dtype)
 
 # allocate device memory
-d_input = cuda.mem_alloc(1 * batch.nbytes)
-d_output = cuda.mem_alloc(1 * output.nbytes)
+d_input = cuda_error_check(cuda.cuMemAlloc(1 * batch.nbytes))
+d_output = cuda_error_check(cuda.cuMemAlloc(1 * output.nbytes))
 bindings = [int(d_input), int(d_output)]
-stream = cuda.Stream()
+stream = cuda_error_check(cuda.cuStreamCreate(0))
+
 
 def predict(batch): # result gets copied into output
     # transfer input data to device
-    cuda.memcpy_htod_async(d_input, batch, stream)
+    cuda_error_check(
+        cuda.cuMemcpyHtoDAsync(d_input, batch, batch.nbytes, stream)
+    )
     # execute model
-    context.execute_async_v2(bindings, stream.handle, None)
+    context.execute_async_v2(bindings, stream, None)
     # transfer predictions back
-    cuda.memcpy_dtoh_async(output, d_output, stream)
-    # syncronize threads
-    stream.synchronize()
+    cuda_error_check(
+        cuda.cuMemcpyDtoHAsync(output, d_output, output.nbytes, stream)
+    )
+    # synchronize threads
+    cuda_error_check(
+        cuda.cuStreamSynchronize(stream)
+    )
 
 predict(batch)
 

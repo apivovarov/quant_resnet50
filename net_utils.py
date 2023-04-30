@@ -7,7 +7,7 @@ from cuda import cuda
 
 log = logging.getLogger("EngineBuilder")
 
-def _cuda_error_check(args):
+def cuda_error_check(args):
     """CUDA error checking."""
     err, ret = args[0], args[1:]
     if isinstance(err, cuda.CUresult):
@@ -41,10 +41,10 @@ class EngineCalibrator(trt.IInt8MinMaxCalibrator):
       preprocess = weights.transforms()
       self.batch = preprocess(img).unsqueeze(0).numpy()
       self.cnt = 0
-      _cuda_error_check(cuda.cuInit(0))
-      cuDevice = _cuda_error_check(cuda.cuDeviceGet(0))
-      cuCtx = _cuda_error_check(cuda.cuCtxCreate(0, cuDevice))
-      self.d_batch = _cuda_error_check(cuda.cuMemAlloc(1 * self.batch.nbytes))
+      cuda_error_check(cuda.cuInit(0))
+      cuDevice = cuda_error_check(cuda.cuDeviceGet(0))
+      cuCtx = cuda_error_check(cuda.cuCtxCreate(0, cuDevice))
+      self.d_batch = cuda_error_check(cuda.cuMemAlloc(1 * self.batch.nbytes))
 
     def get_batch_size(self):
       """
@@ -66,7 +66,7 @@ class EngineCalibrator(trt.IInt8MinMaxCalibrator):
 
       try:
         log.info(f"Calibrating data for inputs {names}")
-        _cuda_error_check(
+        cuda_error_check(
           cuda.cuMemcpyHtoD(
             self.d_batch,
             np.ascontiguousarray(self.batch),
