@@ -1,5 +1,8 @@
 __pycache__
 .idea
+.vscode
+mnist
+results
 *.onnx
 *.trt
 profile.nsys-rep

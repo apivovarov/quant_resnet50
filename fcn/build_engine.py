@@ -10,11 +10,11 @@ logging.getLogger("EngineBuilder").setLevel(logging.DEBUG)
 log = logging.getLogger("EngineBuilder")
 
 onnx_path = "fcn.onnx"
-#engine_path = "./fcn_fp32.trt"
-engine_path = "./fcn_fp16.trt"
+engine_path = "./fcn_fp32.trt"
+#engine_path = "./fcn_fp16.trt"
 
-onnx_path = "fcn_quant.onnx"
-engine_path = "./fcn_fp16_int8.trt"
+#onnx_path = "fcn_quant.onnx"
+#engine_path = "./fcn_fp16_int8.trt"
 #cache_file = "calib_cache.bin"
 
 trt_logger = trt.Logger(trt.Logger.INFO)
@@ -25,8 +25,8 @@ builder = trt.Builder(trt_logger)
 config = builder.create_builder_config()
 config.profiling_verbosity=trt.ProfilingVerbosity.DETAILED
 #config.flags=0
-config.set_flag(trt.BuilderFlag.FP16)
-config.set_flag(trt.BuilderFlag.INT8)
+#config.set_flag(trt.BuilderFlag.FP16)
+#config.set_flag(trt.BuilderFlag.INT8)
 #config.int8_calibrator = EngineCalibrator(cache_file)
 #config.set_flag(trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS)
 config.set_flag(trt.BuilderFlag.SPARSE_WEIGHTS)

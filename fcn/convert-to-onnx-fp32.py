@@ -6,7 +6,8 @@ from model_utils import FCN
 
 in_sz =28*28
 
-batch = torch.rand(1, in_sz).cuda()
+batch = torch.rand(1, in_sz)
+batch = batch.cuda()
 
 model = FCN()
 model.load_state_dict(torch.load("results/model_state.pt"))
