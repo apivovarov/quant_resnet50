@@ -8,3 +8,4 @@ profile.nsys-rep
 *.bin
 *.pt
 *.pth
+mnist
