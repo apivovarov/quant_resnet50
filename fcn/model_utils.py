@@ -3,7 +3,6 @@ from torch import nn
 
 in_sz = 28 * 28
 
-
 class FCN(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -37,4 +36,19 @@ class FCN2(torch.nn.Module):
         x = self.relu(self.ln0(x))
         x = self.relu(self.ln1(x))
         x = self.ln2(x)
+        return x
+
+class FCN3(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.relu = nn.ReLU()
+        self.conv0 = nn.Conv2d(1, 8, (5,5), stride=(3,3))
+        self.ln0 = nn.Linear(512, 64)
+        self.ln1 = nn.Linear(64, 10)
+    def forward(self, x: torch.Tensor):
+        x = self.relu(self.conv0(x))
+        x = self.flatten(x)
+        x = self.relu(self.ln0(x))
+        x = self.ln1(x)
         return x

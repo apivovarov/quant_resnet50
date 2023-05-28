@@ -3,8 +3,7 @@ import torch.nn as nn
 import torchvision
 from model_utils import FCN2
 
-in_sz = 28 * 28
-batch_size_test = 8
+batch_size_test = 1
 
 random_seed = 1
 torch.manual_seed(random_seed)
